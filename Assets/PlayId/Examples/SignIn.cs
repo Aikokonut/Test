@@ -30,6 +30,7 @@ namespace Assets.PlayId.Examples
             if (success)
             {
                 var jwt = new JWT(user.TokenResponse.IdToken);
+                Debug.Log(user.TokenResponse.IdToken);
                 jwt.ValidateSignature(PlayIdServices.Instance.Auth.SavedUser.ClientId);
                 Output.text += "\nId Token (JWT) validated.";
 

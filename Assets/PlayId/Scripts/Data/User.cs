@@ -38,7 +38,6 @@ namespace Assets.PlayId.Scripts.Data
         {
             var jwt = new JWT(tokenResponse.IdToken);
             var payload = JObject.Parse(jwt.Payload);
-
             Id = (int)payload["sub"];
             Name = (string)payload["name"];
             Email = (string)payload["email"];

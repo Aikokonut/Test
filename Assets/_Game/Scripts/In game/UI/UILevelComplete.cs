@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Firebase;
+using Firebase.Database;
 using Firebase.Extensions;
 public class UILevelComplete : UIComponent
 {
@@ -22,8 +24,9 @@ public class UILevelComplete : UIComponent
 
     private void SaveScoreToFirebase(int score)
     {
-        var userId = PlayIdServices.Instance.Auth.SavedUser.Id;
+        var userId = PlayIdServices.Instance.Auth.SavedUser.Id.ToString(); 
         var databaseRef = FirebaseDatabase.DefaultInstance.RootReference;
+
         databaseRef.Child("scores").Child(userId).SetValueAsync(score).ContinueWith(task =>
         {
             if (task.IsCompleted)
