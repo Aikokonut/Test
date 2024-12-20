@@ -11,10 +11,11 @@ namespace Assets.PlayId.Examples
     {
         public Text Log;
         public Text Output;
-
+        [SerializeField] GameObject background;
+        [SerializeField] Text playerName;
         public void Start()
         {
-            Application.logMessageReceived += (condition, _, _) => Log.text += condition + '\n';
+            //Application.logMessageReceived += (condition, _, _) => Log.text += condition + '\n';
             PlayIdServices.Instance.Auth.TryResume(OnSignIn);
         }
 
@@ -33,13 +34,15 @@ namespace Assets.PlayId.Examples
                 Debug.Log(user.TokenResponse.IdToken);
                 jwt.ValidateSignature(PlayIdServices.Instance.Auth.SavedUser.ClientId);
                 Output.text += "\nId Token (JWT) validated.";
-
+                playerName.text = user.Name;
                 var loadParams = new LoadSceneParameters()
                 {
                     loadSceneMode = LoadSceneMode.Additive,
-                    localPhysicsMode = LocalPhysicsMode.Physics3D
+                    localPhysicsMode = LocalPhysicsMode.Physics3D,
+                    
                 };
-
+                this.gameObject.SetActive(false);
+                background.SetActive(false);
                 Camera.main.gameObject.SetActive(false);
                 var gameManager = Singleton<GameManager>.Instance;
                 gameManager.LoadGameMap("Game_LakeSide");
