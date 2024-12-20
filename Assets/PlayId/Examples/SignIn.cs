@@ -1,6 +1,5 @@
-using Assets.PlayId.Scripts;
+﻿using Assets.PlayId.Scripts;
 using Assets.PlayId.Scripts.Data;
-using Assets.PlayId.Scripts.Enums;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -13,9 +12,9 @@ namespace Assets.PlayId.Examples
         public Text Output;
         [SerializeField] GameObject background;
         [SerializeField] Text playerName;
+
         public void Start()
         {
-            //Application.logMessageReceived += (condition, _, _) => Log.text += condition + '\n';
             PlayIdServices.Instance.Auth.TryResume(OnSignIn);
         }
 
@@ -26,26 +25,45 @@ namespace Assets.PlayId.Examples
 
         void OnSignIn(bool success, string error, User user)
         {
-            Output.text = success ? $"Hello, {user.Name}!" : error;
-
             if (success)
             {
-                var jwt = new JWT(user.TokenResponse.IdToken);
+                Output.text = $"Hello, {user.Name}!";
                 Debug.Log(user.TokenResponse.IdToken);
-                jwt.ValidateSignature(PlayIdServices.Instance.Auth.SavedUser.ClientId);
-                Output.text += "\nId Token (JWT) validated.";
-                playerName.text = user.Name;
-                var loadParams = new LoadSceneParameters()
+
+                try
                 {
-                    loadSceneMode = LoadSceneMode.Additive,
-                    localPhysicsMode = LocalPhysicsMode.Physics3D,
-                    
-                };
-                this.gameObject.SetActive(false);
-                background.SetActive(false);
-                Camera.main.gameObject.SetActive(false);
-                var gameManager = Singleton<GameManager>.Instance;
-                gameManager.LoadGameMap("Game_LakeSide");
+                    var jwt = new JWT(user.TokenResponse.IdToken);
+                    jwt.ValidateSignature(PlayIdServices.Instance.Auth.SavedUser.ClientId);
+                }
+                catch (System.Exception ex)
+                {
+                    if (ex.Message.Contains("expired"))
+                    {
+                        Output.text = "Token expired. Please sign in again.";
+                        PlayIdServices.Instance.Auth.SignIn(OnSignIn, caching: false);
+                        return;
+                    }
+                    else
+                    {
+                        Output.text = $"Error: {ex.Message}";
+                    }
+                }
+
+                if (FirebaseManager.Instance != null)
+                {
+                    SavePlayerDataToFirebase(user.Id.ToString(), user.Name);
+                }
+                else
+                {
+                    Debug.LogError("FirebaseManager is not initialized.");
+                }
+
+                playerName.text = user.Name;
+                LoadGameScene();
+            }
+            else
+            {
+                Output.text = error;
             }
         }
 
@@ -55,55 +73,21 @@ namespace Assets.PlayId.Examples
             Output.text = "Not signed in";
         }
 
-        public void SignInWithPlatforms()
+        private void SavePlayerDataToFirebase(string userId, string userName)
         {
-            PlayIdServices.Instance.Auth.SignIn(OnSignIn, platforms: Platform.Google | Platform.Apple | Platform.Facebook);
-        }
-
-        public void SignInSinglePlatform()
-        {
-            PlayIdServices.Instance.Auth.SignIn(OnSignIn, platforms: Platform.Google);
-        }
-
-        public void LinkPlatform()
-        {
-            if (PlayIdServices.Instance.Auth.SavedUser == null)
+            if (FirebaseManager.Instance != null)
             {
-                Output.text = "Please sign in first.";
+                FirebaseManager.Instance.SavePlayerData(userId, userName);
             }
             else
             {
-                PlayIdServices.Instance.Auth.Link(OnLinkPlatform);
-            }
-
-            void OnLinkPlatform(bool success, string error, User user)
-            {
-                Output.text = success ? $"Hello, {user.Platforms}!" : error;
+                Debug.LogError("FirebaseManager.Instance is null");
             }
         }
 
-        public void UnlinkPlatform()
+        private void LoadGameScene()
         {
-            var playId = new PlayIdServices();
-
-            if (playId.Auth.SavedUser == null || !playId.Auth.SavedUser.Platforms.HasFlag(Platform.Google))
-            {
-                Output.text = "Please sign in with Google first.";
-            }
-            else
-            {
-                playId.Auth.Unlink(OnUnlinkPlatform, Platform.Google);
-            }
-
-            void OnUnlinkPlatform(bool success, string error, User user)
-            {
-                Output.text = success ? $"Hello, {user.Platforms}!" : error;
-            }
-        }
-
-        public void Navigate(string url)
-        {
-            Application.OpenURL(url);
+            SceneManager.LoadScene("Game_LakeSide");
         }
     }
 }
