@@ -1,7 +1,6 @@
 ﻿using Assets.PlayId.Scripts;
 using Assets.PlayId.Scripts.Data;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Assets.PlayId.Examples
@@ -34,6 +33,7 @@ namespace Assets.PlayId.Examples
                 {
                     var jwt = new JWT(user.TokenResponse.IdToken);
                     jwt.ValidateSignature(PlayIdServices.Instance.Auth.SavedUser.ClientId);
+                    Output.text += "\nId Token (JWT) validated.";
                 }
                 catch (System.Exception ex)
                 {
@@ -46,10 +46,12 @@ namespace Assets.PlayId.Examples
                     else
                     {
                         Output.text = $"Error: {ex.Message}";
+                        return;
                     }
                 }
 
-                if (FirebaseManager.Instance != null)
+                // Kiểm tra nếu Firebase đã được khởi tạo
+                if (FirebaseManager.Instance != null && FirebaseManager.Instance.IsInitialized())
                 {
                     SavePlayerDataToFirebase(user.Id.ToString(), user.Name);
                 }
@@ -58,8 +60,14 @@ namespace Assets.PlayId.Examples
                     Debug.LogError("FirebaseManager is not initialized.");
                 }
 
+                // Cập nhật tên người chơi trên giao diện
                 playerName.text = user.Name;
-                LoadGameScene();
+
+                background.SetActive(false);
+                Camera.main.gameObject.SetActive(false);
+
+                var gameManager = Singleton<GameManager>.Instance;
+                gameManager.LoadGameMap("Game_LakeSide");
             }
             else
             {
@@ -75,19 +83,14 @@ namespace Assets.PlayId.Examples
 
         private void SavePlayerDataToFirebase(string userId, string userName)
         {
-            if (FirebaseManager.Instance != null)
+            if (FirebaseManager.Instance != null && FirebaseManager.Instance.IsInitialized())
             {
                 FirebaseManager.Instance.SavePlayerData(userId, userName);
             }
             else
             {
-                Debug.LogError("FirebaseManager.Instance is null");
+                Debug.LogError("FirebaseManager.Instance is not initialized or Firebase is not ready.");
             }
-        }
-
-        private void LoadGameScene()
-        {
-            SceneManager.LoadScene("Game_LakeSide");
         }
     }
 }

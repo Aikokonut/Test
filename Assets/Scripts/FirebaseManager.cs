@@ -5,9 +5,10 @@ using UnityEngine;
 
 public class FirebaseManager : MonoBehaviour
 {
-    public static FirebaseManager Instance;
+    public static FirebaseManager Instance { get; private set; }
 
     private DatabaseReference reference;
+    private bool isInitialized = false;
 
     private void Awake()
     {
@@ -21,25 +22,42 @@ public class FirebaseManager : MonoBehaviour
             Destroy(gameObject);
         }
 
+        InitializeFirebase();
+    }
+
+    private void InitializeFirebase()
+    {
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
         {
+            if (task.Exception != null)
+            {
+                Debug.LogError("Firebase dependencies are not available: " + task.Exception);
+                return;
+            }
+
             FirebaseApp app = FirebaseApp.DefaultInstance;
             reference = FirebaseDatabase.DefaultInstance.RootReference;
+            isInitialized = true;
+            Debug.Log("Firebase Initialized");
         });
     }
 
     public void SavePlayerData(string userId, string userName)
     {
-        if (reference != null)
+        if (!isInitialized)
         {
-            string path = "players/" + userId;
-            string json = JsonUtility.ToJson(new PlayerData { userId = userId, userName = userName });
-            reference.SetRawJsonValueAsync(path, json);
+            Debug.LogError("FirebaseManager is not initialized.");
+            return;
         }
-        else
-        {
-            Debug.LogError("Firebase reference is not initialized.");
-        }
+
+        string path = "players/" + userId;
+        string json = JsonUtility.ToJson(new PlayerData { userId = userId, userName = userName });
+        reference.SetRawJsonValueAsync(path, json);
+    }
+
+    public bool IsInitialized()
+    {
+        return isInitialized;
     }
 }
 
