@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "290459319045",
+    "project_id": "disc-7b4c7",
+    "storage_bucket": "disc-7b4c7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:290459319045:android:96f0086a627db370bf956c",
+        "android_client_info": {
+          "package_name": "com.kigor.discgolf"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0SipY7UCSEwobs5D8i8K5tqzMCqEIeRU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

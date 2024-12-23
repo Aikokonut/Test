@@ -13,7 +13,7 @@ public class PreThrowState : StateBehaviour
         UIManager.Instance.UISessionComplete.gameObject.SetActive(false);
         UIManager.Instance.UILevelInfo.ShowUI();
 
-        Debug.Log(throwController.Thrower);
+        //Debug.Log(throwController.Thrower);
 
         // throwController.Thrower.transform.position = LevelManager.Instance.CurrentSessionInfo.startInfo.position;
         // throwController.Aimer.transform.rotation = LevelManager.Instance.CurrentSessionInfo.startInfo.rotation;

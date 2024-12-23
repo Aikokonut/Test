@@ -37,7 +37,7 @@ public class DiscAimer : MonoBehaviour
     }
 
     public void AttachCamera(){
-        Debug.Log((this.mainCam, this.camHolder));
+        //Debug.Log((this.mainCam, this.camHolder));
         this.mainCam.transform.SetPositionAndRotation(camHolder.position, camHolder.rotation);
         this.mainCam.transform.SetParent(this.transform);
     }

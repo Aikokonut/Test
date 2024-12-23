@@ -9,7 +9,7 @@ public class UIMiniMap : UIComponent
     public Vector2 Size => this.GetComponent<RectTransform>().sizeDelta;
 
     public void SetDiscMarkerPosition(Vector2 pos){
-        Debug.Log(pos);
+        //Debug.Log(pos);
         discMarker.anchoredPosition = pos;
     }
     public void SetTargetMarkerPosition(Vector2 pos){

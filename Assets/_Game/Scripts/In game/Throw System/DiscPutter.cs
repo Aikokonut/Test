@@ -49,7 +49,7 @@ public class DiscPutter : DiscThrower
                 );
                 this.Disc.transform.position = dragPoint;
                 //dummyObj.transform.position = dragPoint;
-                Debug.Log(dragPoint);
+                //Debug.Log(dragPoint);
             }
         }
         if (Input.GetMouseButtonUp(0))

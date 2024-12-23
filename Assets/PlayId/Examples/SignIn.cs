@@ -24,6 +24,13 @@ namespace Assets.PlayId.Examples
 
         void OnSignIn(bool success, string error, User user)
         {
+            if (user == null)
+            {
+                Output.text = "Error: User data is null.";
+                Debug.LogError("User is null. Sign-in failed.");
+                return;
+            }
+
             if (success)
             {
                 Output.text = $"Hello, {user.Name}!";
@@ -60,10 +67,10 @@ namespace Assets.PlayId.Examples
                     Debug.LogError("FirebaseManager is not initialized.");
                 }
 
-                // Cập nhật tên người chơi trên giao diện
                 playerName.text = user.Name;
 
                 background.SetActive(false);
+                this.gameObject.SetActive(false);
                 Camera.main.gameObject.SetActive(false);
 
                 var gameManager = Singleton<GameManager>.Instance;
