@@ -9,7 +9,7 @@ public class ProfileSettings : MonoBehaviour
 
     private void Start()
     {
-        // Load saved player data from PlayerPrefs
+        // Load saved player data from PlayerPrefs or Firebase
         playerNameInput.text = PlayerPrefs.GetString("PlayerName", "Player");
         avatarDropdown.value = PlayerPrefs.GetInt("AvatarIndex", 0);
         soundToggle.isOn = PlayerPrefs.GetInt("SoundEnabled", 1) == 1;
@@ -24,20 +24,12 @@ public class ProfileSettings : MonoBehaviour
         PlayerPrefs.SetInt("SoundEnabled", soundToggle.isOn ? 1 : 0);
 
         PlayerPrefs.Save();
+        AuthManager.Instance.SavePlayerData(playerNameInput.text, avatarDropdown.value/*, soundToggle.isOn*/);
     }
 
     private void OnSoundToggleChanged(bool isOn)
     {
         // Handle sound toggling
-        if (isOn)
-        {
-            // Enable sound
-            AudioListener.volume = 1f;
-        }
-        else
-        {
-            // Mute sound
-            AudioListener.volume = 0f;
-        }
+        AudioListener.volume = isOn ? 1f : 0f;
     }
 }

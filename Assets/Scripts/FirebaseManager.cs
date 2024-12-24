@@ -1,44 +1,26 @@
 ﻿using Firebase;
 using Firebase.Database;
-using Firebase.Auth;
+using Firebase.Extensions;
 using UnityEngine;
 
 public class FirebaseManager : MonoBehaviour
 {
-    private FirebaseAuth firebaseAuth;
-    private FirebaseDatabase firebaseDatabase;
+    private static FirebaseManager _instance;
+    private DatabaseReference databaseReference;
+    private bool isInitialized;
 
-    public static FirebaseManager Instance { get; private set; }  // Singleton instance
-
-    private bool isInitialized = false;
-
-    private void Awake()
+    public static FirebaseManager Instance
     {
-        // Ensure that only one instance exists
-        if (Instance != null && Instance != this)
+        get
         {
-            Destroy(gameObject);
-            return;
+            if (_instance == null)
+            {
+                GameObject obj = new GameObject("FirebaseManager");
+                _instance = obj.AddComponent<FirebaseManager>();
+                DontDestroyOnLoad(obj);
+            }
+            return _instance;
         }
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        // Initialize Firebase
-        InitializeFirebase();
-    }
-
-    private void InitializeFirebase()
-    {
-        firebaseAuth = FirebaseAuth.DefaultInstance;
-        firebaseDatabase = FirebaseDatabase.DefaultInstance;
-
-        // Wait until Firebase is initialized
-        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
-        {
-            FirebaseApp app = FirebaseApp.DefaultInstance;
-            isInitialized = app != null;
-            Debug.Log("Firebase initialized: " + isInitialized);
-        });
     }
 
     public bool IsInitialized()
@@ -46,27 +28,78 @@ public class FirebaseManager : MonoBehaviour
         return isInitialized;
     }
 
-    // Example method to save player data to Firebase
+    private void Awake()
+    {
+        if (_instance != null && _instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        _instance = this;
+        DontDestroyOnLoad(gameObject);
+        InitializeFirebase();
+    }
+
+    public void InitializeFirebase()
+    {
+        Debug.Log("Initializing Firebase...");
+        FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompleted && task.Result == DependencyStatus.Available)
+            {
+                FirebaseApp app = FirebaseApp.DefaultInstance;
+                databaseReference = FirebaseDatabase.GetInstance(app)
+                    .GetReferenceFromUrl("https://disc-7b4c7-default-rtdb.asia-southeast1.firebasedatabase.app/");
+                isInitialized = true;
+                Debug.Log("Firebase Initialized Successfully.");
+            }
+            else
+            {
+                Debug.LogError("Firebase Initialization Failed: " + task.Exception);
+            }
+        });
+    }
+
     public void SavePlayerData(string userId, string userName)
     {
-        if (isInitialized)
-        {
-            var reference = firebaseDatabase.GetReference("players").Child(userId);
-            reference.Child("name").SetValueAsync(userName).ContinueWith(task =>
-            {
-                if (task.IsCompleted)
-                {
-                    Debug.Log("Player data saved successfully.");
-                }
-                else
-                {
-                    Debug.LogError("Failed to save player data.");
-                }
-            });
-        }
-        else
+        if (!isInitialized || databaseReference == null)
         {
             Debug.LogError("Firebase is not initialized.");
+            return;
         }
+
+        databaseReference.Child("players").Child(userId).Child("name").SetValueAsync(userName).ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompleted && !task.IsFaulted && !task.IsCanceled)
+            {
+                Debug.Log("Player data saved successfully.");
+            }
+            else
+            {
+                Debug.LogError("Failed to save player data: " + task.Exception);
+            }
+        });
+    }
+
+    public void GetPlayerData(string userId)
+    {
+        if (!isInitialized || databaseReference == null)
+        {
+            Debug.LogError("Firebase is not initialized.");
+            return;
+        }
+
+        databaseReference.Child("players").Child(userId).Child("name").GetValueAsync().ContinueWithOnMainThread(task =>
+        {
+            if (task.IsCompleted && task.Result != null)
+            {
+                DataSnapshot snapshot = task.Result;
+                Debug.Log("Player name: " + snapshot.Value);
+            }
+            else
+            {
+                Debug.LogError("Failed to retrieve player data: " + task.Exception);
+            }
+        });
     }
 }

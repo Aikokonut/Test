@@ -1,7 +1,10 @@
 ﻿using Assets.PlayId.Scripts;
 using Assets.PlayId.Scripts.Data;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 namespace Assets.PlayId.Examples
 {
@@ -12,8 +15,27 @@ namespace Assets.PlayId.Examples
         [SerializeField] GameObject background;
         [SerializeField] Text playerName;
 
-        public void Start()
+        private void Awake()
         {
+            Debug.Log("Initializing Firebase in Awake.");
+            FirebaseManager.Instance.InitializeFirebase();
+        }
+
+        private void Start()
+        {
+            Debug.Log($"Is Firebase Initialized? {FirebaseManager.Instance.IsInitialized()}");
+
+            StartCoroutine(WaitForFirebaseInitialization());
+        }
+
+        private IEnumerator WaitForFirebaseInitialization()
+        {
+            while (!FirebaseManager.Instance.IsInitialized())
+            {
+                yield return null; 
+            }
+
+            Debug.Log("Firebase Initialized Successfully.");
             PlayIdServices.Instance.Auth.TryResume(OnSignIn);
         }
 
@@ -22,7 +44,7 @@ namespace Assets.PlayId.Examples
             PlayIdServices.Instance.Auth.SignIn(OnSignIn, caching: false);
         }
 
-        void OnSignIn(bool success, string error, User user)
+        private void OnSignIn(bool success, string error, User user)
         {
             if (user == null)
             {
@@ -57,7 +79,6 @@ namespace Assets.PlayId.Examples
                     }
                 }
 
-                // Kiểm tra nếu Firebase đã được khởi tạo
                 if (FirebaseManager.Instance != null && FirebaseManager.Instance.IsInitialized())
                 {
                     SavePlayerDataToFirebase(user.Id.ToString(), user.Name);
@@ -75,6 +96,7 @@ namespace Assets.PlayId.Examples
 
                 var gameManager = Singleton<GameManager>.Instance;
                 gameManager.LoadGameMap("Game_LakeSide");
+
             }
             else
             {

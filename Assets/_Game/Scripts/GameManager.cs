@@ -16,7 +16,7 @@ public class GameManager : Singleton<GameManager>
     {
         SceneManager.UnloadSceneAsync("MainMenu").completed += (op) =>
         {
-            SceneManager.LoadSceneAsync(gameMap, LoadSceneMode.Additive).completed += (op) =>
+            SceneManager.LoadSceneAsync(gameMap, LoadSceneMode.Additive).completed += (op2) =>
             {
                 SceneManager.SetActiveScene(SceneManager.GetSceneAt(SceneManager.sceneCount - 1));
                 UIManager.Instance.UIMainMenu.HideUI();
