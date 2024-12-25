@@ -5,7 +5,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 
-
 namespace Assets.PlayId.Examples
 {
     public class SignIn : MonoBehaviour
@@ -32,7 +31,7 @@ namespace Assets.PlayId.Examples
         {
             while (!FirebaseManager.Instance.IsInitialized())
             {
-                yield return null; 
+                yield return null;
             }
 
             Debug.Log("Firebase Initialized Successfully.");

@@ -42,6 +42,8 @@ public class FirebaseManager : MonoBehaviour
 
     public void InitializeFirebase()
     {
+        if (isInitialized) return;
+
         Debug.Log("Initializing Firebase...");
         FirebaseApp.CheckAndFixDependenciesAsync().ContinueWithOnMainThread(task =>
         {
